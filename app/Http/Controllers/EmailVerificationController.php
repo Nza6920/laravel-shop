@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Notifications\EmailVerificationNotification;
+use App\Exceptions\InvalidRequestException;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Exception;
@@ -18,14 +19,14 @@ class EmailVerificationController extends Controller
         $token = $request->input('token');
         // 如果有一个为空则不是合法链接,直接抛出异常
         if (!$email || !$token) {
-          throw new Exception('验证链接不正确或已过期');
+          throw new InvalidRequestException('验证链接不正确或已过期');
         }
 
         // 根据邮箱从数据库中获取对应的用户
         // 通常来说能通过 token 校验的情况下不可能出现用户不存在
         // 为了代码的健壮性还是需要做这个判断
         if (!$user = User::where('email', $email)->first()){
-          throw new Exception('用户不存在');
+          throw new InvalidRequestException('用户不存在');
         }
 
         // 将指定的 key 从缓存中删除
@@ -42,7 +43,7 @@ class EmailVerificationController extends Controller
         $user = $request->user();
         // 判断用户是否已激活
         if($user->email_verified) {
-            throw new Exception('你已经验证过邮箱了');
+            throw new InvalidRequestException('你已经验证过邮箱了');
         }
 
         // 调用 notify() 方法来发送定义好的通知类
