@@ -15,4 +15,5 @@ class PagesController extends Controller
     {
         return view('pages.email_verify_notice');
     }
+
 }
