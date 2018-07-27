@@ -8,6 +8,7 @@ use App\Exceptions\InvalidRequestException;
 
 class ProductsController extends Controller
 {
+    // 排序与搜索功能
     public function index(Request $request)
     {
         // 创建一个查询构造器
@@ -75,6 +76,7 @@ class ProductsController extends Controller
         return [];
     }
 
+    // 商品详细页面
     public function show(Product $product, Request $request)
     {
         if (!$product->on_sale) {
@@ -90,5 +92,13 @@ class ProductsController extends Controller
         }
 
         return view('products.show', ['product' => $product, 'favored' => $favored]);
+    }
+
+    // 收藏页面
+    public function favorites(Request $request)
+    {
+        $products = $request->user()->favoriteProducts()->paginate(16);
+
+        return view('products.favorites', ['products' => $products]);
     }
 }
