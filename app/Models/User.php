@@ -21,15 +21,24 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+    // 收货地址
     public function addresses()
     {
         return $this->hasMany(UserAddress::class);
     }
 
+    // 收藏
     public function favoriteProducts()
     {
         return $this->belongsToMany(Product::class, 'user_favorite_products')
                     ->withTimestamps()
                     ->orderBy('user_favorite_products.created_at', 'desc');
     }
+
+    // 购物车
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
 }
