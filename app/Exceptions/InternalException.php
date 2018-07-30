@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use Exception;
 use Illuminate\Http\Request;
 
+// 系统异常
 class InternalException extends Exception
 {
     protected $msgForUser;
