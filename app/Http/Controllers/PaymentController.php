@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Events\OrderPaid;
 use App\Exceptions\InvalidRequestException;
 
 class PaymentController extends Controller
 {
+    // 支付宝支付
     public function payByAlipay(Order $order, Request $request)
     {
         // 判断订单是否属于当前用户
@@ -63,6 +65,12 @@ class PaymentController extends Controller
             'payment_no'     => $data->trade_no,   // 支付宝订单号
         ]);
 
+        $this->afterPaid($order);
         return app('alipay')->success();
+    }
+
+    protected function afterPaid(Order $order)
+    {
+        event(new OrderPaid($order));
     }
 }
