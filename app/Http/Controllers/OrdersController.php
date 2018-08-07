@@ -12,6 +12,7 @@ use App\Http\Requests\OrderRequest;
 use App\Http\Requests\SendReviewRequest;
 use App\Http\Requests\ApplyRefundRequest;
 use App\Http\Requests\Admin\HandleRefundRequest;
+use App\Exceptions\InternalException;
 
 class OrdersController extends Controller
 {
@@ -150,7 +151,8 @@ class OrdersController extends Controller
 
         // 是否同意退款
         if ($request->input('agree')) {
-            // 同意退款
+            // 调用退款逻辑
+            $this->_refundOrder($order);
         } else {
             // 将拒绝退款的理由放到 extra 字段中
             $extra = $order->extra ?: [];
@@ -161,9 +163,49 @@ class OrdersController extends Controller
                 'extra'         => $extra,
             ]);
         }
-        
+
         return $order;
     }
 
+    protected function _refundOrder(Order $order)
+    {
+        // 判断该订单的支付方式
+        switch ($order->payment_method) {
+            case 'wechat':
+              break;
+            case 'alipay':
+              // 生成一个退款订单号
+              $refundNo = Order::getAvaliableRefundNo();
+              // 调用支付宝支付实例的 refund 方法
+              $ret = app('alipay')->refund([
+                  'out_trade_no'   => $order->no,            // 之前的流水单号
+                  'refund_amount'  => $order->total_amount,  // 退款金额, 单位元
+                  'out_request_no' => $refundNo,             // 退款订单号
+              ]);
+              // 根据支付宝文档, 如果返回值中有 sub_code 字段说明退款失败
+              if ($ret->sub_code) {
+                  // 将退款失败的存入 extra 字段
+                  $extra = $order->extra;
+                  $extra['refund_failed_code'] = $ret->sub_code;
+                  // 将退款标记为退款失败
+                  $order->update([
+                      'refund_no'     => $refundNo,
+                      'refund_status' => Order::REFUND_STATUS_FAILED,
+                      'extra'         => $extra,
+                  ]);
+              } else {
+                  // 将订单的退款状态更新为已退款
+                  $order->update([
+                      'refund_no' => $refundNo,
+                      'refund_status' => Order::REFUND_STATUS_SUCCESS,
+                  ]);
+              }
+              break;
+            default:
+              // 健壮性
+              throw new InternalException('未知支付方式:'.$order->payment_method);
+              break;
+        }
 
+    }
 }
