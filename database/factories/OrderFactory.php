@@ -37,7 +37,7 @@ $factory->define(Order::class, function (Faker $faker) {
         'payment_method' => $faker->randomElement(['wechat', 'alipay']),
         'payment_no'     => $faker->uuid,
         'refund_status'  => $refund ? Order::REFUND_STATUS_SUCCESS : Order::REFUND_STATUS_PENDING,
-        'refund_no'      => $refund ? Order::getAvailableRefundNo() : null,
+        'refund_no'      => $refund ? Order::getAvaliableRefundNo() : null,
         'closed'         => false,
         'reviewed'       => random_int(0, 10) > 2,
         'ship_status'    => $ship,

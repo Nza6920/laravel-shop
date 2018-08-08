@@ -9,7 +9,7 @@ class UserAddressesSeeder extends Seeder
     public function run()
     {
         User::all()->each(function (User $user) {
-            factory(UserAddresses::class, random_int(1,3))->create(['user_id' => $user->id]);
+            factory(UserAddress::class, random_int(1,3))->create(['user_id' => $user->id]);
         });
     }
 }
